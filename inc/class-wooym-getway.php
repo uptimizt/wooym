@@ -17,8 +17,6 @@ class WooYM_Getway extends WC_Payment_Gateway {
 
 	    $this->title              = $this->get_option( 'title' );
 	    $this->description        = $this->get_option( 'description' );
-      $this -> scid = $this -> settings['scid'];
-      $this -> ShopID = $this -> settings['ShopID'];
       $this -> liveurl = '';
       $this->wallet_number = $this->get_option( 'wallet_number' );
 
@@ -56,7 +54,24 @@ class WooYM_Getway extends WC_Payment_Gateway {
                 'title' => __('Номер кошелька','yandex_wallet'),
                 'type' => 'number',
                 'description' => __('Номер кошелька на который нужно перечислять платежи','yandex_wallet'),
-                'default' => __('0','yandex_wallet'))
+                'default' => __('0','yandex_wallet')),
+            'ym_api_callback_check' => array(
+                'title' => __('Установлен обратный адрес в Яндекс Кошельке','yandex_wallet'),
+                'type' => 'checkbox',
+                'description' => __(sprintf('Поставьте тут галочку, после того как укажете адрес %s в <a href="%s" target="_blank">настройках кошелька</a> на стороне Яндекса', get_rest_url( 0, '/yandex-money/v1/notify/' ), 'https://money.yandex.ru/myservices/online.xml') ,'yandex_wallet'),
+                'default' => __('0','yandex_wallet')),
+            'wallet_secret' => array(
+                'title' => __('Секрет кошелька','yandex_wallet'),
+                'type' => 'password',
+                'description' => __(sprintf('Секретный ключ из <a href="%s" target="_blank">настроек кошелька</a> для синхронизации', 'https://money.yandex.ru/myservices/online.xml'),'yandex_wallet'),
+                'default' => __('0','yandex_wallet')),
+            'debug_email' => array(
+                'title' => __('Отладочные письма','yandex_wallet'),
+                'type' => 'checkbox',
+                'label' => __('Включить отладочные письма','yandex_wallet'),
+                'description' => __('Отправлять служебные письма с отладочной информацией о платежах на адрес админа сайта о всех поступающих платежах' ,'yandex_wallet'),
+                'default' => __('0','yandex_wallet')),
+
         );
     }
 
@@ -86,16 +101,16 @@ class WooYM_Getway extends WC_Payment_Gateway {
     public function generate_payu_form($order_id){
 
         $order = new WC_Order($order_id);
-        $txnid = $order_id;
     		$sendurl='https://money.yandex.ru/quickpay/confirm.xml';
+
         $result ='';
     		$result .= '<form name=ShopForm method="POST" id="submit_Yandex_Wallet_payment_form" action="'.$sendurl.'">';
     			$result .= '<input type="hidden" name="receiver" value="'.$this->wallet_number.'">';
-    			$result .= '<input type="hidden" name="formcomment" value="'.get_bloginfo('name').': '.$txnid.'">';
-    			$result .= '<input type="hidden" name="short-dest" value="'.get_bloginfo('name').': '.$txnid.'">';
+    			$result .= '<input type="hidden" name="formcomment" value="'.get_bloginfo('name').': '.$order_id.'">';
+    			$result .= '<input type="hidden" name="short-dest" value="'.get_bloginfo('name').': '.$order_id.'">';
     			$result .= '<input type="hidden" name="label" value="'.$txnid.'">';
     			$result .= '<input type="hidden" name="quickpay-form" value="shop">';
-    			$result .= '<input type="hidden" name="targets" value="транзакция {'.$txnid.'}">';
+    			$result .= '<input type="hidden" name="targets" value="Заказ {'.$order_id.'}">';
     			$result .= '<input type="hidden" name="sum" value="'.number_format( $order->order_total, 2, '.', '' ).'" data-type="number" >';
     			$result .= '<input type="hidden" name="comment" value="'.$order->customer_note.'" >';
     			$result .= '<input type="hidden" name="need-fio" value="false">';
@@ -106,6 +121,7 @@ class WooYM_Getway extends WC_Payment_Gateway {
     			$result .= '<input id="PC" type="radio" name="paymentType" value="PC"> <label for="PC">Оплата через кошелек Яндекс.Деньги.</label><br/>';
     			$result .= '<input type="submit" name="submit-button" value="Оплатить">';
     		$result .='</form>';
+
     		return $result;
 
     }
@@ -121,7 +137,7 @@ class WooYM_Getway extends WC_Payment_Gateway {
     function showMessage($content){
             return '<div class="box '.$this -> msg['class'].'-box">'.$this -> msg['message'].'</div>'.$content;
     }
-    
+
      // get all pages
     function get_pages($title = false, $indent = true) {
         $wp_pages = get_pages('sort_column=menu_order');
