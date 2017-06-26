@@ -17,7 +17,6 @@ class WooYM_Callback_Endpoint {
   var $secret = '';
 
   function __construct(){
-    add_filter('rest_enabled', '__return_true');
     add_action( 'rest_api_init', array($this, 'rest_api_init_callback') );
 
     add_action('json_api_wooym_callback', [$this, 'check_data'], 10, 3);
@@ -48,15 +47,21 @@ class WooYM_Callback_Endpoint {
       return false;
     }
 
-    $order_id = (int)$body['label'];
+    $order_id = wc_sanitize_order_id($body['label']);
 
     $order = wc_get_order($order_id);
+
+    wp_mail(get_option('admin_email'), 'test2', $order_id);
+
 
     if(empty($order)){
       return false;
     }
 
     $check_result = $order->set_status('processing', 'Поступила оплата через Яндекс Деньги');
+    $order->save();
+
+    wp_mail(get_option('admin_email'), 'test2', print_r($check_result, true));
 
     if(empty($check_result)){
       wp_mail(get_option('admin_email'), 'Ошибка обработки платежа от Яндекса', "Не удалос изменить статус заказа: " . $order_id);

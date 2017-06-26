@@ -108,7 +108,7 @@ class WooYM_Getway extends WC_Payment_Gateway {
     			$result .= '<input type="hidden" name="receiver" value="'.$this->wallet_number.'">';
     			$result .= '<input type="hidden" name="formcomment" value="'.get_bloginfo('name').': '.$order_id.'">';
     			$result .= '<input type="hidden" name="short-dest" value="'.get_bloginfo('name').': '.$order_id.'">';
-    			$result .= '<input type="hidden" name="label" value="'.$txnid.'">';
+    			$result .= '<input type="hidden" name="label" value="'.$order_id.'">';
     			$result .= '<input type="hidden" name="quickpay-form" value="shop">';
     			$result .= '<input type="hidden" name="targets" value="Заказ {'.$order_id.'}">';
     			$result .= '<input type="hidden" name="sum" value="'.number_format( $order->order_total, 2, '.', '' ).'" data-type="number" >';
