@@ -11,7 +11,7 @@ Author URI: http://wpcraft.ru/
 require_once 'inc/class-wooym-getway.php';
 require_once 'inc/class-wooym-callback-endpoint.php';
 
-require_once 'inc/class-email-sample.php';
+// require_once 'inc/class-email-sample.php';
 
 
 
