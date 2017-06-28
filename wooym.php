@@ -1,7 +1,7 @@
 <?php
 /*
 Plugin Name: WooYM - WooCommerce и ЯДеньги
-Version: 0.5
+Version: 0.7
 Plugin URI: https://wpcraft.ru/product/wooym/
 Description: Интеграция WooCommerce и кошелька Яндекс Деньги (wooym)
 Author: WPCraft

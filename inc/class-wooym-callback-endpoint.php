@@ -1,11 +1,6 @@
 <?php
 /*
-Plugin Name: Yandex Money Reciver via HTTP
-Version: 0.3
-Plugin URI: https://github.com/yumashev/rest-api-yandex-money-connect
-Description: Получает и обрабатывает сообщения о платежая на Яндекс Деньги (class json_api_yandex_money). Endpoint /wp-json/yandex-money/v1/notify/
-Author: yumashev@fleep.io
-Author URI: https://github.com/yumashev/
+* Yandex Money Reciver via HTTP
 */
 
 if ( ! defined( 'ABSPATH' ) ) exit; // Exit if accessed directly
@@ -47,12 +42,11 @@ class WooYM_Callback_Endpoint {
       return false;
     }
 
-    $order_id = wc_sanitize_order_id($body['label']);
+    $order_id = (int)$body['label'];
+
+
 
     $order = wc_get_order($order_id);
-
-    wp_mail(get_option('admin_email'), 'test2', $order_id);
-
 
     if(empty($order)){
       return false;
@@ -60,8 +54,6 @@ class WooYM_Callback_Endpoint {
 
     $check_result = $order->set_status('processing', 'Поступила оплата через Яндекс Деньги');
     $order->save();
-
-    wp_mail(get_option('admin_email'), 'test2', print_r($check_result, true));
 
     if(empty($check_result)){
       wp_mail(get_option('admin_email'), 'Ошибка обработки платежа от Яндекса', "Не удалос изменить статус заказа: " . $order_id);
