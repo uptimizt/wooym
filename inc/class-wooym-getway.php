@@ -89,6 +89,7 @@ class WooYM_Getway extends WC_Payment_Gateway {
     function payment_fields(){
         if($this -> description) echo wpautop(wptexturize($this -> description));
     }
+
     /**
      * Receipt Page
      **/
@@ -115,6 +116,7 @@ class WooYM_Getway extends WC_Payment_Gateway {
     			$result .= '<input type="hidden" name="comment" value="'.$order->customer_note.'" >';
     			$result .= '<input type="hidden" name="need-fio" value="false">';
     			$result .= '<input type="hidden" name="need-email" value="false" >';
+    			$result .= '<input type="hidden" name="successURL" value="' . $order->get_checkout_order_received_url() . '" >';
     			$result .= '<input type="hidden" name="need-phone" value="false">';
     			$result .= '<input type="hidden" name="need-address" value="false">';
           $result .= '<input id="AC" type="radio" name="paymentType" value="AC"> <label for="AC">Оплата банковской картой</label><br/>';
