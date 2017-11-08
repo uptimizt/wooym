@@ -8,27 +8,24 @@ function wooym_gateway_class(){
 class WooYM_Getway extends WC_Payment_Gateway {
 
   public function __construct(){
-      $this -> id = 'yandex_wallet';
-      $this -> method_title  = 'Яндекс.Кошелек';
-      $this -> has_fields = false;
+      $this->id = 'yandex_wallet';
+      $this->method_title  = 'Яндекс.Кошелек';
+      $this->has_fields = false;
 
-      $this -> init_form_fields();
-      $this -> init_settings();
+      $this->init_form_fields();
+      $this->init_settings();
 
 	    $this->title              = $this->get_option( 'title' );
 	    $this->description        = $this->get_option( 'description' );
-      $this -> liveurl = '';
+      $this->liveurl = '';
       $this->wallet_number = $this->get_option( 'wallet_number' );
 
       $this -> msg['message'] = "";
       $this -> msg['class'] = "";
 
-      if ( version_compare( WOOCOMMERCE_VERSION, '2.0.0', '>=' ) ) {
-                add_action( 'woocommerce_update_options_payment_gateways_' . $this->id, array( &$this, 'process_admin_options' ) );
-             } else {
-                add_action( 'woocommerce_update_options_payment_gateways', array( &$this, 'process_admin_options' ) );
-            }
-      add_action('woocommerce_receipt_yandex_wallet', array(&$this, 'receipt_page'));
+      add_action( 'woocommerce_update_options_payment_gateways_' . $this->id, array( $this, 'process_admin_options' ) );
+
+      add_action('woocommerce_receipt_yandex_wallet', array(&$this, 'display_form'));
    }
 
 
@@ -90,76 +87,49 @@ class WooYM_Getway extends WC_Payment_Gateway {
         if($this -> description) echo wpautop(wptexturize($this -> description));
     }
 
-    /**
-     * Receipt Page
-     **/
-    function receipt_page($order){
-        echo $this -> generate_payu_form($order);
-    }
+
     /**
      * Generate payu button link
      **/
-    public function generate_payu_form($order_id){
-
-        $order = new WC_Order($order_id);
-    		$sendurl='https://money.yandex.ru/quickpay/confirm.xml';
-
-        $result ='';
-    		$result .= '<form name=ShopForm method="POST" id="submit_Yandex_Wallet_payment_form" action="'.$sendurl.'">';
-    			$result .= '<input type="hidden" name="receiver" value="'.$this->wallet_number.'">';
-    			$result .= '<input type="hidden" name="formcomment" value="'.get_bloginfo('name').': '.$order_id.'">';
-    			$result .= '<input type="hidden" name="short-dest" value="'.get_bloginfo('name').': '.$order_id.'">';
-    			$result .= '<input type="hidden" name="label" value="'.$order_id.'">';
-    			$result .= '<input type="hidden" name="quickpay-form" value="shop">';
-    			$result .= '<input type="hidden" name="targets" value="Заказ {'.$order_id.'}">';
-    			$result .= '<input type="hidden" name="sum" value="'.number_format( $order->order_total, 2, '.', '' ).'" data-type="number" >';
-    			$result .= '<input type="hidden" name="comment" value="'.$order->customer_note.'" >';
-    			$result .= '<input type="hidden" name="need-fio" value="false">';
-    			$result .= '<input type="hidden" name="need-email" value="false" >';
-    			$result .= '<input type="hidden" name="successURL" value="' . $order->get_checkout_order_received_url() . '" >';
-    			$result .= '<input type="hidden" name="need-phone" value="false">';
-    			$result .= '<input type="hidden" name="need-address" value="false">';
-          $result .= '<input id="AC" type="radio" name="paymentType" value="AC"> <label for="AC">Оплата банковской картой</label><br/>';
-    			$result .= '<input id="PC" type="radio" name="paymentType" value="PC"> <label for="PC">Оплата через кошелек Яндекс.Деньги.</label><br/>';
-    			$result .= '<input type="submit" name="submit-button" value="Оплатить">';
-    		$result .='</form>';
-
-    		return $result;
-
+    public function display_form($order_id)
+    {
+      $order = wc_get_order($order_id);
+      ?>
+      <form name=ShopForm method="POST" id="submit_Yandex_Wallet_payment_form" action="https://money.yandex.ru/quickpay/confirm.xml">
+  			<input type="hidden" name="receiver" value="<?php echo $this->wallet_number ?>">
+  			<input type="hidden" name="formcomment" value="<?php echo get_bloginfo('name') . ': ' . $order_id; ?>">
+  			<input type="hidden" name="short-dest" value="<?php echo get_bloginfo('name').': '.$order_id; ?>">
+  			<input type="hidden" name="label" value="<?php echo $order_id; ?>">
+  			<input type="hidden" name="quickpay-form" value="shop">
+  			<input type="hidden" name="targets" value="Заказ {<?php echo $order_id ?>}">
+  			<input type="hidden" name="sum" value="<?php echo number_format( $order->get_total(), 2, '.', '' )?>" data-type="number" >
+  			<input type="hidden" name="comment" value="<?php echo $order->get_customer_note() ?>" >
+  			<input type="hidden" name="need-fio" value="false">
+  			<input type="hidden" name="need-email" value="false" >
+  			<input type="hidden" name="successURL" value="<?php echo $order->get_checkout_order_received_url() ?>" >
+  			<input type="hidden" name="need-phone" value="false">
+  			<input type="hidden" name="need-address" value="false">
+        <input id="AC" type="radio" name="paymentType" value="AC"> <label for="AC">Оплата банковской картой</label><br/>
+  			<input id="PC" type="radio" name="paymentType" value="PC"> <label for="PC">Оплата через кошелек Яндекс.Деньги.</label><br/>
+  			<input type="submit" name="submit-button" value="Оплатить">
+  		</form>
+      <?php
     }
+
     /**
      * Process the payment and return the result
      **/
-   function process_payment($order_id){
-          $order = new WC_Order($order_id);
-		      return array('result' => 'success', 'redirect' => $order->get_checkout_payment_url( true ));
-    }
+   function process_payment($order_id)
+   {
+      $order = wc_get_order( $order_id );
+
+      return array('result' => 'success', 'redirect' => $order->get_checkout_payment_url( true ));
+   }
 
 
-    function showMessage($content){
-            return '<div class="box '.$this -> msg['class'].'-box">'.$this -> msg['message'].'</div>'.$content;
-    }
-
-     // get all pages
-    function get_pages($title = false, $indent = true) {
-        $wp_pages = get_pages('sort_column=menu_order');
-        $page_list = array();
-        if ($title) $page_list[] = $title;
-        foreach ($wp_pages as $page) {
-            $prefix = '';
-            // show indented child pages?
-            if ($indent) {
-                $has_parent = $page->post_parent;
-                while($has_parent) {
-                    $prefix .=  ' - ';
-                    $next_page = get_page($has_parent);
-                    $has_parent = $next_page->post_parent;
-                }
-            }
-            // add to page list array array
-            $page_list[$page->ID] = $prefix . $page->post_title;
-        }
-        return $page_list;
+    function showMessage($content)
+    {
+      return '<div class="box '.$this -> msg['class'].'-box">'.$this -> msg['message'].'</div>'.$content;
     }
 }
 
