@@ -6,27 +6,36 @@
 if ( ! defined( 'ABSPATH' ) ) exit; // Exit if accessed directly
 
 
-
+/**
+ * Класс для обработки веб хука от Яндекс Кошелька
+ */
 class WooYM_Callback_Endpoint {
 
+  /**
+   * Переменная для хранения секретной фразы,
+   * которая задается в настройках на стороне Яндекс Кошелька
+   */
   var $secret = '';
 
-  function __construct(){
-    add_action( 'rest_api_init', array($this, 'rest_api_init_callback') );
+  /**
+   * Инициализция класса
+   */
+  function init(){
+    add_action( 'rest_api_init', array(__CLASS__, 'rest_api_init_callback') );
 
-    add_action('json_api_wooym_callback', [$this, 'check_data'], 10, 3);
+    add_action('json_api_wooym_callback', array(__CLASS__, 'check_data'), 10, 3);
 
-    add_action('json_api_wooym_callback', [$this, 'update_order'], 10, 3);
+    add_action('json_api_wooym_callback', array(__CLASS__, 'update_order'), 10, 3);
 
-    add_filter('wooym_debug_email_enable', [$this, 'check_debug_email']);
+    add_filter('wooym_debug_email_enable', array(__CLASS__, 'check_debug_email'));
 
   }
 
   /**
   * Проверяем опцию отладочных писем и если есть то отправляем
   */
-  function check_debug_email($bool){
-    $ym_gateway = $this->get_object_wooym();
+  static public function check_debug_email($bool){
+    $ym_gateway = self::get_object_wooym();
     if( ! empty($ym_gateway->settings['debug_email'])){
       $bool = true;
     }
@@ -34,7 +43,10 @@ class WooYM_Callback_Endpoint {
     return $bool;
   }
 
-  function update_order($body, $data_request, $ym_gateway){
+  /**
+   * Обновляем данные по Заказу при поступлении сообщения от Яндекс Кошелька
+   */
+  static public function update_order($body, $data_request, $ym_gateway){
 
     if(empty($body['label'])){
       wp_mail(get_option('admin_email'), 'Ошибка обработки платежа от Яндекса', "Пришло уведомление от Яндекс Кошелька с пустым полем label");
@@ -63,8 +75,12 @@ class WooYM_Callback_Endpoint {
 
   }
 
-  //Нужно сделать проверку уведомления по sha1 и секретному слову https://tech.yandex.ru/money/doc/dg/reference/notification-p2p-incoming-docpage/
-  function check_data($body, $data_request, $ym_gateway) {
+  /**
+   * Проверка данных от Яндекс Кошелька
+   *
+   * @todo Нужно сделать проверку уведомления по sha1 и секретному слову https://tech.yandex.ru/money/doc/dg/reference/notification-p2p-incoming-docpage/
+   */
+  static public function check_data($body, $data_request, $ym_gateway) {
 
     $check = sprintf(
       "%s&%s&%s&%s&%s&%s&%s&%s&%s",
@@ -88,24 +104,30 @@ class WooYM_Callback_Endpoint {
     }
   }
 
-  function rest_api_init_callback(){
+  /**
+   * Регистрируем эндпоинт в REST API
+   */
+  static public function rest_api_init_callback(){
 
     // Add deep-thoughts/v1/get-all-post-ids route
     register_rest_route( 'yandex-money/v1', '/notify/', array(
       'methods' => WP_REST_Server::CREATABLE,
-      'callback' => array($this, 'save_data'),
+      'callback' => array(__CLASS__, 'save_data'),
     ));
 
   }
 
-  function save_data($data_request){
+  /**
+   * Сохрняем данные
+   */
+  static public function save_data($data_request){
 
     try {
 
       $body = print_r($data_request->get_body(), true);
-      $body = $this->conver_body_in_array($body);
+      $body = self::conver_body_in_array($body);
 
-      $ym_gateway = $this->get_object_wooym();
+      $ym_gateway = self::get_object_wooym();
 
       do_action( 'json_api_wooym_callback', $body, $data_request, $ym_gateway );
 
@@ -118,10 +140,12 @@ class WooYM_Callback_Endpoint {
     }
 
     return $response;
-
   }
 
-  function get_object_wooym(){
+  /**
+   * Получаем объект для работы шлюза
+   */
+  static public function get_object_wooym(){
     $gateway_controller = WC_Payment_Gateways::instance();
     //далее попробовать получить ключ шлюза
 
@@ -142,8 +166,10 @@ class WooYM_Callback_Endpoint {
 
   }
 
-  //Converted string from Money to array
-  function conver_body_in_array($body){
+  /**
+   * Converted string from Money to array
+   */
+  static public function conver_body_in_array($body){
 
     if( strpos($body, 'notification_type') !== false ){
       // $message .= sprintf('<hr><pre>%s</pre>', $body);
@@ -164,4 +190,4 @@ class WooYM_Callback_Endpoint {
 
 }
 
-new WooYM_Callback_Endpoint;
+WooYM_Callback_Endpoint::init();

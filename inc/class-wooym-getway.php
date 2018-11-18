@@ -7,6 +7,9 @@ function wooym_gateway_class(){
 
 class WooYM_Getway extends WC_Payment_Gateway {
 
+  /**
+   * The Constructor
+   */
   public function __construct(){
       $this->id = 'yandex_wallet';
       $this->method_title  = 'Яндекс.Кошелек';
@@ -28,46 +31,60 @@ class WooYM_Getway extends WC_Payment_Gateway {
       add_action('woocommerce_receipt_yandex_wallet', array(&$this, 'display_form'));
    }
 
-
-    function init_form_fields(){
+  /**
+   * Определяем поля
+   */
+  function init_form_fields(){
 
        $this->form_fields = array(
-            'enabled' => array(
-                'title' => __('Включить/Выключить','yandex_wallet'),
-                'type' => 'checkbox',
-                'label' => __('Включить модуль оплаты через Яндекс.Кассу','yandex_wallet'),
-                'default' => 'no'),
-            'title' => array(
-                'title' => __('Заголовок','yandex_wallet'),
-                'type'=> 'text',
-                'description' => __('Название, которое пользователь видит во время оплаты','yandex_wallet'),
-                'default' => __('Яндекс.Кошелек','yandex_wallet')),
-            'description' => array(
-                'title' => __('Описание','yandex_wallet'),
-                'type' => 'textarea',
-                'description' => __('Описание, которое пользователь видит во время оплаты','yandex_wallet'),
-                'default' => __('Оплата через Яндекс.Кошелек','yandex_wallet')),
-            'wallet_number' => array(
-                'title' => __('Номер кошелька','yandex_wallet'),
-                'type' => 'number',
-                'description' => __('Номер кошелька на который нужно перечислять платежи','yandex_wallet'),
-                'default' => __('0','yandex_wallet')),
-            'ym_api_callback_check' => array(
-                'title' => __('Установлен обратный адрес в Яндекс Кошельке','yandex_wallet'),
-                'type' => 'checkbox',
-                'description' => __(sprintf('Поставьте тут галочку, после того как укажете адрес %s в <a href="%s" target="_blank">настройках кошелька</a> на стороне Яндекса', get_rest_url( 0, '/yandex-money/v1/notify/' ), 'https://money.yandex.ru/myservices/online.xml') ,'yandex_wallet'),
-                'default' => __('0','yandex_wallet')),
-            'wallet_secret' => array(
-                'title' => __('Секрет кошелька','yandex_wallet'),
-                'type' => 'password',
-                'description' => __(sprintf('Секретный ключ из <a href="%s" target="_blank">настроек кошелька</a> для синхронизации', 'https://money.yandex.ru/myservices/online.xml'),'yandex_wallet'),
-                'default' => __('0','yandex_wallet')),
-            'debug_email' => array(
-                'title' => __('Отладочные письма','yandex_wallet'),
-                'type' => 'checkbox',
-                'label' => __('Включить отладочные письма','yandex_wallet'),
-                'description' => __('Отправлять служебные письма с отладочной информацией о платежах на адрес админа сайта о всех поступающих платежах' ,'yandex_wallet'),
-                'default' => __('0','yandex_wallet')),
+         'enabled'         => array(
+           'title'   => __( 'Enable/Disable', 'woocommerce' ),
+           'type'    => 'checkbox',
+           'label'   => __( 'Enable bank transfer', 'woocommerce' ),
+           'default' => 'no',
+         ),
+         'title'           => array(
+           'title'       => __( 'Title', 'woocommerce' ),
+           'type'        => 'text',
+           'description' => __( 'This controls the title which the user sees during checkout.', 'woocommerce' ),
+           'default'     => __( 'Direct bank transfer', 'woocommerce' ),
+           'desc_tip'    => true,
+         ),
+         'description'     => array(
+           'title'       => __( 'Description', 'woocommerce' ),
+           'type'        => 'textarea',
+           'description' => __( 'Payment method description that the customer will see on your checkout.', 'woocommerce' ),
+           'default'     => __( 'Make your payment directly into our bank account. Please use your Order ID as the payment reference. Your order will not be shipped until the funds have cleared in our account.', 'woocommerce' ),
+           'desc_tip'    => true,
+         ),
+        'instructions'    => array(
+          'title'       => __( 'Instructions', 'woocommerce' ),
+          'type'        => 'textarea',
+          'description' => __( 'Instructions that will be added to the thank you page and emails.', 'woocommerce' ),
+          'default'     => '',
+          'desc_tip'    => true,
+        ),
+        'wallet_number' => array(
+            'title' => __('Номер кошелька','yandex_wallet'),
+            'type' => 'number',
+            'description' => __('Номер кошелька на который нужно перечислять платежи','yandex_wallet'),
+            'default' => __('0','yandex_wallet')),
+        'ym_api_callback_check' => array(
+            'title' => __('Установлен обратный адрес в Яндекс Кошельке','yandex_wallet'),
+            'type' => 'checkbox',
+            'description' => __(sprintf('Поставьте тут галочку, после того как укажете адрес %s в <a href="%s" target="_blank">настройках кошелька</a> на стороне Яндекса', get_rest_url( 0, '/yandex-money/v1/notify/' ), 'https://money.yandex.ru/myservices/online.xml') ,'yandex_wallet'),
+            'default' => __('0','yandex_wallet')),
+        'wallet_secret' => array(
+            'title' => __('Секрет кошелька','yandex_wallet'),
+            'type' => 'password',
+            'description' => __(sprintf('Секретный ключ из <a href="%s" target="_blank">настроек кошелька</a> для синхронизации', 'https://money.yandex.ru/myservices/online.xml'),'yandex_wallet'),
+            'default' => __('0','yandex_wallet')),
+        'debug_email' => array(
+            'title' => __('Отладочные письма','yandex_wallet'),
+            'type' => 'checkbox',
+            'label' => __('Включить отладочные письма','yandex_wallet'),
+            'description' => __('Отправлять служебные письма с отладочной информацией о платежах на адрес админа сайта о всех поступающих платежах' ,'yandex_wallet'),
+            'default' => __('0','yandex_wallet')),
 
         );
     }
@@ -75,7 +92,7 @@ class WooYM_Getway extends WC_Payment_Gateway {
     public function admin_options(){
         echo '<h3>'.__('Оплата через Яндекс.Кассу','yandex_wallet').'</h3>';
         echo '<table class="form-table">';
-        $this -> generate_settings_html();
+        $this->generate_settings_html();
         echo '</table>';
 
     }
@@ -94,7 +111,19 @@ class WooYM_Getway extends WC_Payment_Gateway {
     public function display_form($order_id)
     {
       $order = wc_get_order($order_id);
+
+      $payment_gateway = wc_get_payment_gateway_by_order( $order );
+
+      if( ! empty($payment_gateway->settings['instructions']) ){
+        $instructions = $payment_gateway->settings['instructions'];
+        echo '<h1>Инструкции</h1>';
+        echo $instructions;
+      }
+
+      $btn_classes = apply_filters('wooym_btn_classes', '');
+
       ?>
+      <h1>Выберите способ оплаты</h1>
       <form name=ShopForm method="POST" id="submit_Yandex_Wallet_payment_form" action="https://money.yandex.ru/quickpay/confirm.xml">
   			<input type="hidden" name="receiver" value="<?php echo $this->wallet_number ?>">
   			<input type="hidden" name="formcomment" value="<?php echo get_bloginfo('name') . ': ' . $order_id; ?>">
@@ -111,7 +140,7 @@ class WooYM_Getway extends WC_Payment_Gateway {
   			<input type="hidden" name="need-address" value="false">
         <input id="AC" type="radio" name="paymentType" value="AC"> <label for="AC">Оплата банковской картой</label><br/>
   			<input id="PC" type="radio" name="paymentType" value="PC"> <label for="PC">Оплата через кошелек Яндекс.Деньги.</label><br/>
-  			<input type="submit" name="submit-button" value="Оплатить">
+  			<input type="submit" name="submit-button" <?= $btn_classes ?> value="Оплатить">
   		</form>
       <?php
     }
@@ -123,7 +152,12 @@ class WooYM_Getway extends WC_Payment_Gateway {
    {
       $order = wc_get_order( $order_id );
 
-      return array('result' => 'success', 'redirect' => $order->get_checkout_payment_url( true ));
+      // $order->update_status( 'on-hold', "Ожидание оплаты от Яндекс Кошелька" );
+
+      return array(
+        'result' => 'success',
+        'redirect' => $order->get_checkout_payment_url( true )
+      );
    }
 
 
