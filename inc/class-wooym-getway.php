@@ -117,7 +117,7 @@ class WooYM_Getway extends WC_Payment_Gateway {
       if( ! empty($payment_gateway->settings['instructions']) ){
         $instructions = $payment_gateway->settings['instructions'];
         echo '<h1>Инструкции</h1>';
-        echo $instructions;
+        echo wpautop($instructions);
       }
 
       $btn_classes = apply_filters('wooym_btn_classes', '');

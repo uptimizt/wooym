@@ -5,7 +5,7 @@ Plugin URI: https://wpcraft.ru/product/wooym/
 Description: Интеграция WooCommerce и кошелька Яндекс Деньги (wooym)
 Author: WPCraft
 Author URI: http://wpcraft.ru/
-Version: 0.9
+Version: 1.0
 */
 
 require_once 'inc/class-wooym-getway.php';
