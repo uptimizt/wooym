@@ -20,7 +20,7 @@ class WooYM_Callback_Endpoint {
   /**
    * Инициализция класса
    */
-  function init(){
+  public static function init(){
     add_action( 'rest_api_init', array(__CLASS__, 'rest_api_init_callback') );
 
     add_action('json_api_wooym_callback', array(__CLASS__, 'check_data'), 10, 3);
@@ -34,7 +34,7 @@ class WooYM_Callback_Endpoint {
   /**
   * Проверяем опцию отладочных писем и если есть то отправляем
   */
-  static public function check_debug_email($bool){
+  public static function check_debug_email($bool){
     $ym_gateway = self::get_object_wooym();
     if( ! empty($ym_gateway->settings['debug_email'])){
       $bool = true;
@@ -46,7 +46,7 @@ class WooYM_Callback_Endpoint {
   /**
    * Обновляем данные по Заказу при поступлении сообщения от Яндекс Кошелька
    */
-  static public function update_order($body, $data_request, $ym_gateway){
+  public static function update_order($body, $data_request, $ym_gateway){
 
     if(empty($body['label'])){
       wp_mail(get_option('admin_email'), 'Ошибка обработки платежа от Яндекса', "Пришло уведомление от Яндекс Кошелька с пустым полем label");
@@ -80,7 +80,7 @@ class WooYM_Callback_Endpoint {
    *
    * @todo Нужно сделать проверку уведомления по sha1 и секретному слову https://tech.yandex.ru/money/doc/dg/reference/notification-p2p-incoming-docpage/
    */
-  static public function check_data($body, $data_request, $ym_gateway) {
+  public static function check_data($body, $data_request, $ym_gateway) {
 
     $check = sprintf(
       "%s&%s&%s&%s&%s&%s&%s&%s&%s",
@@ -107,7 +107,7 @@ class WooYM_Callback_Endpoint {
   /**
    * Регистрируем эндпоинт в REST API
    */
-  static public function rest_api_init_callback(){
+  public static function rest_api_init_callback(){
 
     // Add deep-thoughts/v1/get-all-post-ids route
     register_rest_route( 'yandex-money/v1', '/notify/', array(
@@ -120,7 +120,7 @@ class WooYM_Callback_Endpoint {
   /**
    * Сохрняем данные
    */
-  static public function save_data($data_request){
+  public static function save_data($data_request){
 
     try {
 
@@ -145,7 +145,7 @@ class WooYM_Callback_Endpoint {
   /**
    * Получаем объект для работы шлюза
    */
-  static public function get_object_wooym(){
+  public static function get_object_wooym(){
     $gateway_controller = WC_Payment_Gateways::instance();
     //далее попробовать получить ключ шлюза
 
@@ -169,7 +169,7 @@ class WooYM_Callback_Endpoint {
   /**
    * Converted string from Money to array
    */
-  static public function conver_body_in_array($body){
+  public static function conver_body_in_array($body){
 
     if( strpos($body, 'notification_type') !== false ){
       // $message .= sprintf('<hr><pre>%s</pre>', $body);
